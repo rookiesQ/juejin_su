@@ -59,7 +59,8 @@ class HttpManager {
     Dio dio = new Dio();
     Response response;
     try {
-      response = await dio.request(url, data: params, options: option);
+      response =
+          await dio.request(Uri.encodeFull(url), data: params, options: option);
     } on DioError catch (e) {
       Response errorResponse;
       if (e.response != null) {

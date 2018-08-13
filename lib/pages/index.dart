@@ -8,6 +8,7 @@ import 'package:juejin_su/pages/discovery.dart';
 import 'package:juejin_su/pages/hot.dart';
 import 'package:juejin_su/pages/mine.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:juejin_su/common/scoped_model/appModel.dart';
 
 class IndexPage extends StatefulWidget {
   @override
@@ -43,13 +44,9 @@ class IndexPageState extends State<IndexPage> {
     new MinePage()
   ];
 
-  int _index = 0;
-  Widget currentPage; //当前页面
-
   @override
   void initState() {
     super.initState();
-    currentPage = tabBody[_index];
   }
 
   @override
@@ -58,40 +55,37 @@ class IndexPageState extends State<IndexPage> {
       onWillPop: () {
         return _dialogExitApp(context);
       },
-      child: new ScopedModel<IndexModel>(
-        model: IndexModel(),
-        child: new Scaffold(
-          bottomNavigationBar: new Container(
-              height: 48.0,
-              width: double.infinity,
-              child: new Column(children: <Widget>[
-                new Divider(
-                  height: 0.0,
+      child: new Scaffold(
+        bottomNavigationBar: new Container(
+            height: 48.0,
+            width: double.infinity,
+            child: new Column(children: <Widget>[
+              new Divider(
+                height: 0.0,
+              ),
+              new Container(
+                height: 48.0,
+                width: double.infinity,
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    new _ButtonNavigation(0),
+                    new _ButtonNavigation(1),
+                    new _ButtonNavigation(2),
+                    new _ButtonNavigation(3),
+                    new _ButtonNavigation(4),
+                  ],
                 ),
-                new Container(
-                  height: 48.0,
-                  width: double.infinity,
-                  child: new Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      new _ButtonNavigation(0),
-                      new _ButtonNavigation(1),
-                      new _ButtonNavigation(2),
-                      new _ButtonNavigation(3),
-                      new _ButtonNavigation(4),
-                    ],
-                  ),
-                )
-              ])),
-          body: new ScopedModelDescendant<IndexModel>(
-            builder: (ctx, child, model) {
-              return new IndexedStack(
-                children: tabBody,
-                index: model._index,
-              );
-            },
-          ),
+              )
+            ])),
+        body: new ScopedModelDescendant<AppModel>(
+          builder: (ctx, child, model) {
+            return new IndexedStack(
+              children: tabBody,
+              index: model.index,
+            );
+          },
         ),
       ),
     );
@@ -118,15 +112,14 @@ class _ButtonNavigationState extends State<_ButtonNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return new ScopedModelDescendant<IndexModel>(
+    return new ScopedModelDescendant<AppModel>(
       builder: (ctx, child, model) {
         return new Expanded(
           child: new Container(
             width: double.infinity,
             child: new IconButton(
               icon: Icon(_iconList[widget.index]),
-              color:
-                  widget.index == model._index ? Colors.blue : Colors.black87,
+              color: widget.index == model.index ? Colors.blue : Colors.black38,
               onPressed: () {
                 model.changeIndex(widget.index);
               },
@@ -135,14 +128,5 @@ class _ButtonNavigationState extends State<_ButtonNavigation> {
         );
       },
     );
-  }
-}
-
-class IndexModel extends Model {
-  int _index = 0;
-
-  void changeIndex(int i) {
-    _index = i;
-    notifyListeners();
   }
 }

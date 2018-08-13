@@ -1,64 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:juejin_su/common/config/requestHeader.dart';
 import 'package:juejin_su/pages/topic.dart';
+import 'package:juejin_su/widgets/GSYTabBarWidget.dart';
 
 class HotPage extends StatefulWidget {
   @override
-  HotPageState createState() => new HotPageState();
+  _HotPageState createState() => new _HotPageState();
 }
 
-class HotPageState extends State<HotPage> {
-  @override
-  void initState() {
-    super.initState();
+class _HotPageState extends State<HotPage> {
+  final PageController topPageControl = new PageController();
+
+  _renderTab() {
+    List<String> tab = ['话题', '推荐', '动态'];
+    List<Widget> list = new List();
+    for (int i = 0; i < tab.length; i++) {
+      list.add(new FlatButton(
+        onPressed: () {
+          topPageControl.jumpTo(MediaQuery.of(context).size.width * i);
+        },
+        child: new Text(
+          tab[i],
+          maxLines: 1,
+        ),
+        textColor: Colors.white,
+      ));
+    }
+    return list;
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return new DefaultTabController(
-      length: 3,
-      child: new Scaffold(
-        appBar: new AppBar(
-          centerTitle: true,
-          title: new TabBar(
-            indicatorSize: TabBarIndicatorSize.label,
-            labelColor: Colors.white,
-            indicatorColor: Colors.white,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              new Tab(
-                text: '话题',
-              ),
-              new Tab(
-                text: '推荐',
-              ),
-              new Tab(
-                text: '动态',
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            new IconButton(
-                icon: new Icon(Icons.mode_edit),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/putHot');
-                })
-          ],
-        ),
-        body: new TabBarView(children: [
-          new TopicPage(),
-          new Center(child: new Text('2')),
-          new Center(child: new Text('3')),
-        ]),
-      ),
+    return new GSYTabBarWidget(
+      type: GSYTabBarWidget.TOP_TITLE,
+      tabItems: _renderTab(),
+      actions: <Widget>[
+        new IconButton(
+            icon: new Icon(Icons.mode_edit),
+            onPressed: () {
+              Navigator.pushNamed(context, '/putHot');
+            })
+      ],
+      tabViews: <Widget>[
+        new TopicPage(),
+        new Center(child: new Text('TODO')),
+        new Center(child: new Text('TODO')),
+      ],
+      topPageControl: topPageControl,
+      backgroundColor: Colors.lightBlue,
+      indicatorColor: Colors.white,
     );
   }
 }

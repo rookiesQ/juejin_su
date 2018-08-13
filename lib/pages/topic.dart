@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:dio/dio.dart';
-import 'dart:async';
-import 'dart:io';
 
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:juejin_su/widgets/ListState.dart';
 import 'package:juejin_su/widgets/pullLoadWidget.dart';
 import 'package:juejin_su/common/dao/daoResult.dart';
-import 'package:juejin_su/common/config/requestHeader.dart';
+import 'package:juejin_su/common/net/api.dart';
+import 'package:juejin_su/common/net/address.dart';
 
 class TopicPage extends StatefulWidget {
   @override
@@ -18,13 +15,15 @@ class TopicPage extends StatefulWidget {
 class _TopicPageState extends ListState<TopicPage> {
   @override
   requestRefresh() async {
-    Dio dio = new Dio();
-    Response response = await dio.get(Uri.encodeFull(
-        'https://short-msg-ms.juejin.im/v1/topicList/recommend?uid=${requestHeader['X-Juejin-Uid']}&device_id=${requestHeader['X-Juejin-Client']}&token=${requestHeader['X-Juejin-Token']}&src=${requestHeader['X-Juejin-Src']}'));
-    if (response == null) {
-      return new DataResult(null, false);
+    var res =
+        await HttpManager.netFetch(Address.getTopicList(), null, null, null);
+    if (res != null && res.data != null) {
+      if (res.data['d']['list'].length == 0) {
+        return new DataResult(null, false);
+      }
+      return new DataResult(res.data['d']['list'], true);
     }
-    return new DataResult(response.data['d']['list'], true);
+    return new DataResult(null, false);
   }
 
   @override
@@ -65,26 +64,6 @@ class _TopicPageState extends ListState<TopicPage> {
         child: new Column(children: <Widget>[
           new Padding(
             padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-            child: new CarouselSlider(
-                items: [1, 2].map((i) {
-                  return new Builder(
-                    builder: (BuildContext context) {
-                      return new Container(
-                          width: MediaQuery.of(context).size.width,
-                          margin: new EdgeInsets.symmetric(horizontal: 5.0),
-                          decoration: new BoxDecoration(color: Colors.amber),
-                          child: new Text(
-                            'text $i',
-                            style: new TextStyle(fontSize: 16.0),
-                          ));
-                    },
-                  );
-                }).toList(),
-                height: 200.0,
-                viewportFraction: 0.9,
-                reverse: false,
-                aspectRatio: 2.0,
-                autoPlay: false),
           ),
           new Container(
               alignment: Alignment.centerLeft,
@@ -117,13 +96,17 @@ class _TopicPageState extends ListState<TopicPage> {
                     new Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        new Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: new SizedBox(
-                            height: 50.0,
-                            width: 52.0,
-                            child: new Image.network(data['icon']),
-                          ),
+                        new Container(
+                          width: 50.0,
+                          height: 52.0,
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: new BoxDecoration(
+                              image: DecorationImage(
+                                  image: NetworkImage(data['icon']),
+                                  fit: BoxFit.cover),
+                              borderRadius: new BorderRadius.all(
+                                const Radius.circular(8.0),
+                              )),
                         ),
                         new Padding(
                           padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -135,31 +118,28 @@ class _TopicPageState extends ListState<TopicPage> {
                                   textAlign: TextAlign.left,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: new TextStyle(fontSize: 16.0),
+                                  style: new TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500),
                                 ),
                                 new Text(
                                   "${data['attendersCount']} 关注者 · ${data['msgsCount']} 沸点",
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: new TextStyle(
-                                      fontSize: 12.0, color: Colors.grey),
+                                      fontSize: 14.0, color: Colors.grey),
                                 ),
                               ]),
                         ),
                       ],
                     ),
-                    new Container(
-                      width: 60.0,
-                      child: new FlatButton(
-                        color: Colors.grey[300],
-                        // shape: new ShapeBorderClipper()
-                        onPressed: () {},
-                        child: new Text(
-                          '关注',
-                          style:
-                              new TextStyle(color: Colors.blue, fontSize: 13.0),
-                        ),
+                    new ActionChip(
+                      label: new Text(
+                        '关注',
+                        style: new TextStyle(color: Colors.blueAccent),
                       ),
+                      backgroundColor: const Color(0XFFEEEEEE),
+                      onPressed: () {},
                     )
                   ])),
           new Divider(height: 1.0)

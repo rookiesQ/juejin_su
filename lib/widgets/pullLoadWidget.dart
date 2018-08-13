@@ -76,6 +76,7 @@ class _PullLoadWidgetState extends State<PullLoadWidget> {
       key: refreshKey,
       onRefresh: onRefresh,
       child: new ListView.builder(
+        shrinkWrap: true,
         physics: const AlwaysScrollableScrollPhysics(),
         itemBuilder: (context, index) {
           if (!control.needHeader &&
@@ -104,13 +105,16 @@ class _PullLoadWidgetState extends State<PullLoadWidget> {
       child: new Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          FlatButton(
-            onPressed: () {},
-            child: new Text('加载中...', style: new TextStyle(color: Colors.grey)),
-          ),
-          Container(
-            child: Text('目前什么也没有哟', style: new TextStyle(color: Colors.grey)),
-          ),
+          // FlatButton(
+          //   onPressed: () {},
+          //   child: new SpinKitHourGlass(
+          //     color: Colors.grey,
+          //     size: 20.0,
+          //   ),
+          // ),
+          // Container(
+          //   child: Text('目前什么也没有哟', style: new TextStyle(color: Colors.grey)),
+          // ),
         ],
       ),
     );
@@ -121,7 +125,10 @@ class _PullLoadWidgetState extends State<PullLoadWidget> {
         ? new Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-                new SpinKitRotatingCircle(color: Color(0xFF24292E)),
+                new SpinKitWave(
+                  color: Colors.grey,
+                  size: 20.0,
+                ),
                 new Container(
                   width: 5.0,
                 ),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:convert';
-import 'dart:async';
-import 'package:http/http.dart' as http;
+
+import 'package:juejin_su/common/net/api.dart';
+import 'package:juejin_su/common/net/address.dart';
 import 'package:flutter_html_view/flutter_html_view.dart';
-import 'package:juejin_su/common/config/requestHeader.dart';
 
 class ArticleDetail extends StatefulWidget {
   final String objectId;
@@ -18,16 +17,22 @@ class ArticleDetail extends StatefulWidget {
 }
 
 class ArticleDetailState extends State<ArticleDetail> {
-  Future getContent() async {
-    final String url =
-        'https://post-storage-api-ms.juejin.im/v1/getDetailData?uid=${requestHeader['X-Juejin-Src']}&device_id=${requestHeader['X-Juejin-Client']}&token=${requestHeader['X-Juejin-Token']}&src=${requestHeader['X-Juejin-Src']}&type=entryView&postId=${widget
-        .objectId}';
-    final response = await http.get(Uri.encodeFull(url));
-    if (response.statusCode == 200) {
-      return json.decode(response.body)['d'];
-    } else {
-      throw Exception('Failed to load content');
+  String content;
+
+  _requestData() async {
+    var res = await HttpManager.netFetch(
+        Address.article(widget.objectId), null, null, null);
+    if (res != null && res.data != null && res.data['d'] != null) {
+      setState(() {
+        content = res.data['d']['content'];
+      });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _requestData();
   }
 
   ///底部按钮
@@ -70,55 +75,48 @@ class ArticleDetailState extends State<ArticleDetail> {
     );
   }
 
-  Widget _content(BuildContext ctx, Map data, String content) {
-    return new Scaffold(
-      appBar: new AppBar(
-        backgroundColor: new Color.fromRGBO(244, 245, 245, 1.0),
-        leading: new IconButton(
-          padding: EdgeInsets.all(0.0),
-          icon: new Icon(Icons.chevron_left),
-          onPressed: () => Navigator.pop(ctx),
-        ),
-        title: new Row(children: <Widget>[
-          new CircleAvatar(
-            backgroundImage: new NetworkImage(data['user']['avatarLarge']),
-          ),
-          new Padding(padding: new EdgeInsets.only(right: 5.0)),
-          new Text(data['user']['username'])
-        ]),
-        actions: <Widget>[
-          new IconButton(
-              icon: new Icon(Icons.file_upload, color: Colors.blue),
-              onPressed: null)
-        ],
-      ),
-      bottomNavigationBar: _getBottomNavigation(data),
-      body: new ListView(children: <Widget>[
-        new Container(color: Colors.white, child: new HtmlView(data: content))
-      ]),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     var articleInfo = widget.articleInfo;
-    return new FutureBuilder(
-      future: getContent(),
-      builder: (context, ret) {
-        if (ret.hasData) {
-          return _content(context, articleInfo, ret.data['content']);
-        } else if (ret.hasError) {
-          return new Container(
+    return new Scaffold(
+      appBar: new AppBar(
+        leading: new IconButton(
+          padding: EdgeInsets.all(0.0),
+          icon: new Icon(
+            Icons.chevron_left,
             color: Colors.white,
-            child: new Text("error: ${ret.error}"),
-          );
-        }
-        //菊花加载
-        return new Container(
-          color: new Color.fromRGBO(244, 245, 245, 1.0),
-          child: new CupertinoActivityIndicator(),
-        );
-      },
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: new Row(children: <Widget>[
+          new CircleAvatar(
+            backgroundImage:
+                new NetworkImage(articleInfo['user']['avatarLarge']),
+          ),
+          new Padding(padding: new EdgeInsets.only(right: 5.0)),
+          new Text(
+            articleInfo['user']['username'],
+            style: new TextStyle(color: Colors.white),
+          )
+        ]),
+        actions: <Widget>[
+          new IconButton(
+              icon: new Icon(Icons.share, color: Colors.white),
+              onPressed: () {})
+        ],
+      ),
+      bottomNavigationBar: _getBottomNavigation(articleInfo),
+      body: new ListView(children: <Widget>[
+        content == null
+            ? new Column(children: <Widget>[
+                new Container(
+                  color: new Color.fromRGBO(244, 245, 245, 1.0),
+                  child: new CupertinoActivityIndicator(),
+                )
+              ])
+            : new Container(
+                color: Colors.white, child: new HtmlView(data: content))
+      ]),
     );
   }
 }

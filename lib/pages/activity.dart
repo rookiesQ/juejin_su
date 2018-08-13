@@ -28,7 +28,6 @@ class ActivityPageState extends State<ActivityPage> {
         length: categoryList.length,
         child: new Scaffold(
           appBar: new AppBar(
-            backgroundColor: new Color.fromRGBO(244, 245, 245, 1.0),
             leading: new IconButton(
                 icon: new Icon(
                   Icons.chevron_left,
@@ -38,14 +37,14 @@ class ActivityPageState extends State<ActivityPage> {
                 }),
             title: new Text(
               '活动',
-              style: new TextStyle(color: Colors.black),
+              style: new TextStyle(color: Colors.white),
             ),
             centerTitle: true,
             bottom: new TabBar(
                 indicatorSize: TabBarIndicatorSize.label,
                 isScrollable: true,
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.grey,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.blueGrey[200],
                 tabs: categoryList.map((tab) {
                   return new Tab(text: tab['cityName']);
                 }).toList()),
@@ -133,7 +132,6 @@ class ActivityListState extends ListState<ActivityList> {
     //   return null;
     // }
     var itemInfo = pullLoadWidgetControl.dataList[i];
-    print(itemInfo);
     return new Container(
         margin: new EdgeInsets.only(top: 10.0),
         child: new Column(

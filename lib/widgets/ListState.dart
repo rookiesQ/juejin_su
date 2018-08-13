@@ -5,8 +5,6 @@ import 'package:juejin_su/widgets/pullLoadWidget.dart';
 
 /**
  * 上下拉刷新列表的通用State
- * Created by guoshuyu
- * Date: 2018-07-20
  */
 // ignore: mixin_inherits_from_not_object
 abstract class ListState<T extends StatefulWidget> extends State<T>
@@ -14,8 +12,6 @@ abstract class ListState<T extends StatefulWidget> extends State<T>
   bool isShow = false;
 
   bool isLoading = false;
-
-  int page = 1;
 
   final List dataList = new List();
 
@@ -37,7 +33,6 @@ abstract class ListState<T extends StatefulWidget> extends State<T>
       return null;
     }
     isLoading = true;
-    page = 1;
     var res = await requestRefresh();
     if (res != null && res.result) {
       pullLoadWidgetControl.dataList.clear();
@@ -58,7 +53,6 @@ abstract class ListState<T extends StatefulWidget> extends State<T>
       return null;
     }
     isLoading = true;
-    page++;
     var res = await requestLoadMore();
     if (res != null && res.result) {
       if (isShow) {
@@ -76,8 +70,7 @@ abstract class ListState<T extends StatefulWidget> extends State<T>
   resolveDataResult(res) {
     if (isShow) {
       setState(() {
-        pullLoadWidgetControl.needLoadMore =
-            (res != null && res.data != null && res.data.length == 20);
+        pullLoadWidgetControl.needLoadMore = (res != null && res.data != null);
       });
     }
   }

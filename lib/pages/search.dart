@@ -1,127 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:async';
-import '../utils/countTime.dart';
+
+import 'package:juejin_su/utils/countTime.dart';
+import 'package:juejin_su/common/dao/daoResult.dart';
+import 'package:juejin_su/widgets/ListState.dart';
+import 'package:juejin_su/widgets/pullLoadWidget.dart';
+import 'package:juejin_su/common/net/api.dart';
+import 'package:juejin_su/common/net/address.dart';
+import 'dart:convert' show json;
 
 class SearchPage extends StatefulWidget {
   @override
   SearchPageState createState() => new SearchPageState();
 }
 
-class SearchPageState extends State<SearchPage> {
+class SearchPageState extends ListState<SearchPage> {
   String searchContent;
-  List searchResult;
+  String searchString;
+  int page = 0;
+  bool canRequest = false;
 
-  Future search(String query) {
-    return http.get(
-        'https://search-merger-ms.juejin.im/v1/search?query=$query&page=0&raw_result=false&src=web');
+  @override
+  bool get isRefreshFirst => false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  search() {
+    canRequest = true;
+    showRefreshLoading();
   }
+
+  _getDataLogic() async {
+    var res = await HttpManager.netFetch(
+        Address.search(searchString, page), null, null, null);
+    canRequest = false;
+    if (res != null && res.data != null) {
+      print(json.decode(res.data)['d'].length);
+      return new DataResult(json.decode(res.data)['d'], true);
+    }
+    return new DataResult(null, false);
+  }
+
+  @override
+  Future<Null> handleRefresh() async {
+    if (isLoading || !canRequest) {
+      return null;
+    }
+    page = 0;
+    isLoading = true;
+    var res = await requestRefresh();
+    if (res != null && res.result) {
+      pullLoadWidgetControl.dataList.clear();
+      if (isShow) {
+        setState(() {
+          pullLoadWidgetControl.dataList.addAll(res.data);
+        });
+      }
+    }
+    resolveDataResult(res);
+    isLoading = false;
+    return null;
+  }
+
+  @override
+  Future<Null> onLoadMore() async {
+    if (isLoading) {
+      return null;
+    }
+    canRequest = true;
+    page++;
+    isLoading = true;
+    var res = await _getDataLogic();
+    if (res != null && res.result) {
+      if (isShow) {
+        setState(() {
+          pullLoadWidgetControl.dataList.addAll(res.data);
+        });
+      }
+    }
+    resolveDataResult(res);
+    isLoading = false;
+    return null;
+  }
+
+  @override
+  requestRefresh() async {
+    return await _getDataLogic();
+  }
+
+  @override
+  requestLoadMore() {}
 
   final TextEditingController controller = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return new CustomScrollView(
-      slivers: <Widget>[
-        new SliverAppBar(
-            pinned: true,
-            leading: new IconButton(
-                icon: new Icon(Icons.chevron_left),
-                onPressed: () {
-                  Navigator.pop(context);
-                }),
-            title: new Text(
-              '搜索',
-              style: new TextStyle(fontWeight: FontWeight.normal),
+    super.build(context);
+    return new MaterialApp(
+        home: new Scaffold(
+            appBar: new AppBar(title: searchInput()),
+            body: PullLoadWidget(
+              pullLoadWidgetControl,
+              (BuildContext context, int index) => _rederItem(index),
+              handleRefresh,
+              onLoadMore,
+              refreshKey: refreshIndicatorKey,
+            )));
+  }
+
+  searchInput() {
+    return new Container(
+      child: new Row(
+        children: <Widget>[
+          new Container(
+            child: new FlatButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: new Icon(Icons.arrow_back, color: Colors.white),
+              label: new Text(""),
             ),
-            centerTitle: true,
-            iconTheme: new IconThemeData(color: Colors.blue),
-            backgroundColor: new Color.fromRGBO(244, 245, 245, 1.0),
-            bottom: new PreferredSize(
-                child: new Container(
-                  color: Colors.white,
-                  padding: new EdgeInsets.all(5.0),
-                  child: new Card(
-                      color: new Color.fromRGBO(252, 252, 252, 0.6),
-                      child: new Padding(
-                        padding: new EdgeInsets.all(5.0),
-                        child: new Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            new Expanded(
-                              child: new TextField(
-                                autofocus: true,
-                                style: new TextStyle(
-                                    fontSize: 14.0, color: Colors.black),
-                                decoration: new InputDecoration(
-                                  contentPadding: new EdgeInsets.all(0.0),
-                                  border: InputBorder.none,
-                                  hintText: '搜索',
-                                  prefixIcon: new Icon(
-                                    Icons.search,
-                                    size: 16.0,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                onChanged: (String content) {
-                                  setState(() {
-                                    searchContent = content;
-                                  });
-                                },
-                                onSubmitted: (String content) {
-                                  search(content).then((response) {
-                                    setState(() {
-                                      searchResult =
-                                          json.decode(response.body)['d'];
-                                    });
-                                  }, onError: (e) {
-                                    throw Exception('Failed to load data');
-                                  });
-                                },
-                                controller: controller,
-                              ),
-                            ),
-                            searchContent == ''
-                                ? new Container(
-                                    height: 0.0,
-                                    width: 0.0,
-                                  )
-                                : new InkResponse(
-                                    child: new Icon(
-                                      Icons.close,
-                                    ),
-                                    onTap: () {
-                                      setState(() {
-                                        searchContent = '';
-                                        controller.text = '';
-                                      });
-                                    })
-                          ],
-                        ),
-                      )),
-                ),
-                preferredSize: new Size.fromHeight(40.0))),
-        searchResult == null
-            ? new SliverFillRemaining(
-                child: new Container(
-                  color: Colors.white,
-                ),
-              )
-            : new SliverList(
-                delegate: new SliverChildBuilderDelegate((context, index) {
-                var resultInfo = searchResult[index];
-                return showResult(resultInfo);
-              }, childCount: searchResult.length))
-      ],
+            width: 60.0,
+          ),
+          new Expanded(
+            child: new TextField(
+              autofocus: true,
+              style: new TextStyle(color: Colors.white),
+              decoration: new InputDecoration.collapsed(
+                  hintText: "搜索",
+                  hintStyle: new TextStyle(color: Colors.white),
+                  fillColor: Colors.white),
+              onChanged: (String content) {
+                setState(() {
+                  searchContent = content;
+                });
+              },
+              onSubmitted: (String content) {
+                if (content.length == null || content.trim().length == 0)
+                  return;
+                page = 0;
+                searchString = content;
+                search();
+              },
+              controller: controller,
+            ),
+          )
+        ],
+      ),
+      decoration: new BoxDecoration(
+        borderRadius: const BorderRadius.all(const Radius.circular(4.0)),
+      ),
     );
   }
 
 //显示搜索结果
-  Widget showResult(resultInfo) {
+  _rederItem(i) {
+    var resultInfo = pullLoadWidgetControl.dataList[i];
     var publicTime = countTime(resultInfo['createdAt']);
     return new Container(
       alignment: Alignment.centerLeft,
@@ -149,5 +185,12 @@ class SearchPageState extends State<SearchPage> {
             ],
           )),
     );
+  }
+
+  @override
+  void dispose() {
+    searchContent = null;
+    searchString = null;
+    super.dispose();
   }
 }

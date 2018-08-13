@@ -1,6 +1,14 @@
 name: juejin_su
 description: A new Flutter project.
 
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# Read more about versioning at semver.org.
+version: 1.0.0+1
+
 dependencies:
   flutter:
     sdk: flutter
@@ -8,17 +16,18 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-  flutter_html_view: ^0.5.1
-  flutter_redux: ^0.5.2
-  carousel_slider: ^0.0.6
+  flutter_html_view: ^0.5.3
   scoped_model: ^0.2.0
-  dio: ^0.0.10
+  dio: ^1.0.0
+  shared_preferences: ^0.4.2
   flutter_spinkit: ^2.0.0
-  flutter_markdown: ^0.1.5
-  flutter_webview_plugin: ^0.1.6
+  flutter_markdown: ^0.1.6
+  flutter_webview_plugin: ^0.2.1
   connectivity: ^0.3.1
   fluttertoast: ^2.0.4
-  
+  json_annotation: ^1.0.0
+  flutter_swiper: ^1.0.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -41,6 +50,7 @@ flutter:
   - assets/icon/github.png
   - assets/icon/weibo.png
   - assets/icon/wechat.png
+  - assets/splash_g.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
